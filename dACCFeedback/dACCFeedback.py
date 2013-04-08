@@ -28,9 +28,9 @@ server_address=raw_input('Please specify server address [[localhost]]: ')
 if server_address == '':
     server_address = 'localhost'
     
-port_number=raw_input('Please specify server address [[32701]]: ')
+port_number=raw_input('Please specify server address [[37201]]: ')
 if port_number == '':
-    port_number = '32701'
+    port_number = '37201'
 port_number = int(port_number)
 
 print 'Please specify which directory to watch: '
@@ -86,6 +86,9 @@ while True:
 client.sentInt(-1)
 
 # save the tracker as well as the calc...
+saveobject(tracker,time.asctime() + ' tracker.psav')
+saveobject(calc,time.asctime() + ' calc.psav')
+
 
 
 
