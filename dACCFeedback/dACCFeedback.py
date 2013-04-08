@@ -81,8 +81,11 @@ while True:
 
     
     time.sleep(UPDATE_INTERVAL)
-    
 
+# close the server thread..
+client.sentInt(-1)
+
+# save the tracker as well as the calc...
 
 
 

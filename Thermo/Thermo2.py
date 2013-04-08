@@ -2,6 +2,10 @@
 import pygame
 import socket
 import sys
+import time
+
+# to prevent our Thermo from freezing...
+from ServerThreading import ServerModeBackground
 
 # let's try it...
 class Thermo(object):
@@ -85,9 +89,9 @@ class Thermo(object):
         # as according to:
         # http://www.pygame.org/docs/ref/event.html
         # the program should handle its events...
-        self._eventQue.set_allowed(None)
-        
-        
+        self._eventQue.set_allowed(pygame.QUIT)
+
+        # i guess I should ALSO keep track of things here, no?
 
         # return self
 
@@ -183,8 +187,69 @@ class Thermo(object):
         return self.percentage
 
 
+
     def server_mode(self):
         """
+        An updated version of servermode, using threading to start the thermomenter!
+        """
+        server_address = ('localhost', 37201)
+
+        # keep the server in a background process...
+        # this starts it up!
+        server=ServerModeBackground(server_address)
+
+        # ... and, start it!
+        server.start()
+
+        # maybe shoddy, but server.data is the data that the thread should track.
+        old_value = server.data
+        break_flag = False
+        while True:
+
+            time.sleep(0.01)            
+
+            # to break out of this loop, and close the Thermometer
+            if server.data==-1:
+                break
+
+            # take care of my events.. don't allow the Thermo to freeze up.
+            for event in self._eventQue.get():
+                print event
+                if event.type == pygame.QUIT:
+                    break_flag = True
+                    break
+
+
+            # update my thermometer.
+            if not server.data==old_value:
+                old_value = server.data
+                self.set_percentage(server.data)
+
+            #also escape out of the while loop!
+            if break_flag:
+                break
+
+
+
+        # we are not outside the main event loop,
+        # which means we should close things down neatly
+        # send a -1 to close my server thread.
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(server_address)
+        message = '%16s' % -1
+        sock.sendall(message)
+        sock.close()
+        # server.data=-1
+            
+        # close also the pygame window?
+        pygame.display.quit()
+
+
+
+
+    def server_mode_old(self):
+        """
+        A depricated function no longer used. It feezes up the Thermo!!
         This will put the Thermo in server mode. It will just listen to in-
         coming traffic. It should be an int between 0 and 100 that u send.
         You can also send a -1, and that will stop the server mode.
@@ -196,7 +261,7 @@ class Thermo(object):
         """
 
         # what's our socket?
-        server_address = ('localhost', 32701)
+        server_address = ('localhost', 37201)
 
         print >>sys.stderr, 'starting up on %s port %s' % server_address
 
